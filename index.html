@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>استخراج كلمة السر وايفاي الألياف البصرية - Marhoul</title>
+    <!-- تضمين مكتبة QRious لتوليد كود QR بدون إنترنت -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        /* تعريف متغيرات الألوان للثيمات المتعددة */
+        :root {
+            --bg-primary: #000000;
+            --bg-container: rgba(17, 17, 17, 0.85);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --accent-color: #ffffff;
+            --accent-text: #000000;
+            --accent-shadow: rgba(255, 255, 255, 0.25);
+            --terminal-text: #ffffff;
+            --toast-bg: rgba(255, 255, 255, 0.95);
+            --toast-text: #000000;
+            --neon-glow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        /* ثيم الماتريكس الأخضر */
+        [data-theme="matrix"] {
+            --bg-primary: #020b02;
+            --bg-container: rgba(5, 20, 5, 0.9);
+            --border-color: rgba(0, 255, 70, 0.2);
+            --text-primary: #00ff46;
+            --text-secondary: #008f25;
+            --accent-color: #00ff46;
+            --accent-text: #000000;
+            --accent-shadow: rgba(0, 255, 70, 0.4);
+            --terminal-text: #00ff46;
+            --toast-bg: rgba(0, 255, 70, 0.95);
+            --toast-text: #000000;
+            --neon-glow: 0 0 10px rgba(0, 255, 70, 0.6), 0 0 20px rgba(0, 255, 70, 0.4);
+        }
+
+        /* ثيم السايببربانك الصاخب */
+        [data-theme="cyberpunk"] {
+            --bg-primary: #0f051d;
+            --bg-container: rgba(26, 11, 46, 0.9);
+            --border-color: rgba(255, 0, 128, 0.3);
+            --text-primary: #00ffff;
+            --text-secondary: #ff0080;
+            --accent-color: #ff0080;
+            --accent-text: #ffffff;
+            --accent-shadow: rgba(255, 0, 128, 0.5);
+            --terminal-text: #00ffff;
+            --toast-bg: rgba(255, 0, 128, 0.95);
+            --toast-text: #ffffff;
+            --neon-glow: 0 0 10px rgba(255, 0, 128, 0.8), 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px; 
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-sizing: border-box;
+            overflow-x: hidden;
+            transition: background 0.5s ease, color 0.5s ease;
+            position: relative;
+        }
+        
+        .container {
+            background: var(--bg-container);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 25px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0px 0px 25px var(--accent-shadow);
+            text-align: center;
+            width: 100%;
+            max-width: 380px;
+            box-sizing: border-box;
+            z-index: 10;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        /* بنر المطور Marhoul */
+        .dev-banner {
+            display: inline-block;
+            font-weight: 900;
+            font-size: 0.95em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            box-shadow: var(--neon-glow);
+            margin-bottom: 20px;
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            from { opacity: 0.8; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1.02); }
+        }
+
+        .top-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .control-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.25em;
+            color: var(--text-primary);
+            line-height: 1.5;
+            text-shadow: 0 0 8px var(--accent-shadow);
+        }
+
+        /* صندوق مسح شبكات الواي فاي */
+        .wifi-scanner-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            text-align: right;
+        }
+
+        .scanner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .scan-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent-color);
+        }
+
+        .scan-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: blink 1s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 0.2; }
+            to { opacity: 1; }
+        }
+
+        .wifi-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .wifi-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .wifi-item:hover, .wifi-item:active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        .wifi-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wifi-name {
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .wifi-signal {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+        }
+
+        .wifi-badge {
+            font-size: 0.7em;
+            padding: 2px 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            color: var(--text-secondary);
+        }
+
+        .wifi-item:hover .wifi-badge {
+            background: var(--accent-color);
+            color: var(--accent-text);
+        }
+
+        input, .btn { 
+            padding: 14px; 
+            margin: 10px 0; 
+            border-radius: 10px; 
+            border: none; 
+            font-size: 1.1em;
+            width: 100%;
+            box-sizing: border-box;
+            outline: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        input { 
+            background-color: rgba(0, 0, 0, 0.5); 
+            color: var(--text-primary); 
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid var(--border-color);
+        }
+
+        input:focus {
+            border: 1px solid var(--accent-color);
+            box-shadow: 0 0 15px var(--accent-shadow);
+        }
+
+        .btn-decode { 
+            background: var(--accent-color);
+            color: var(--accent-text); 
+            cursor: pointer; 
+            box-shadow: 0px 4px 15px var(--accent-shadow);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-decode:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
+        /* شاشة الهكر للأنيميشن */
+        .hacking-container {
+            display: none;
+            position: relative;
+            width: 100%;
+            height: 120px;
+            background-color: #000000;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+
+        #hackingCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* تِرمينال الأوامر التفاعلي */
+        .terminal-box {
+            display: none;
+            background: #020202;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.75em;
+            color: var(--terminal-text);
+            height: 70px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+        }
+
+        .terminal-line {
+            margin: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        /* صندوق النتيجة */
+        .result-box {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+        }
+
+        .result-title {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        #result {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: var(--text-primary);
+            word-break: break-all;
+            display: block;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px var(--accent-shadow);
+            font-family: monospace;
+            cursor: pointer;
+        }
+
+        /* لوحة إحصائيات الاختراق التفاعلية */
+        .stats-panel {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.75em;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-val {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        /* مؤشر قوة كلمة المرور */
+        .strength-container {
+            display: none;
+            margin: 8px 0;
+            text-align: right;
+        }
+
+        .strength-label {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .strength-bar-bg {
+            background: rgba(255, 255, 255, 0.1);
+            height: 6px;
+            border-radius: 3px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .strength-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: #ef4444;
+            transition: width 0.5s ease, background 0.5s ease;
+        }
+
+        /* كود QR */
+        .qr-container {
+            display: none;
+            margin: 15px auto;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 10px;
+            width: 130px;
+            height: 130px;
+            box-sizing: border-box;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .qr-container canvas {
+            width: 110px !important;
+            height: 110px !important;
+        }
+
+        /* أزرار الإجراءات */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.05);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn-primary {
+            background-color: var(--accent-color);
+            color: var(--accent-text);
+        }
+
+        .action-btn:active {
+            opacity: 0.8;
+        }
+
+        /* سجل العمليات السابقة */
+        .history-section {
+            margin-top: 20px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            text-align: right;
+        }
+
+        .history-title {
+            font-size: 0.85em;
+            font-weight: bold;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 0.75em;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            border: 1px solid rgba(255,255,255,0.03);
+            font-family: monospace;
+        }
+
+        .history-copy {
+            cursor: pointer;
+            color: var(--accent-color);
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        /* إشعار الـ Toast */
+        .toast {
+            position: fixed;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.85em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: bottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+        }
+
+        .toast.show {
+            bottom: 25px;
+        }
+
+        /* كانفاس الهالة التفاعلية المضيئة */
+        #interactiveCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* خلفية مصفوفة تساقط الرموز */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- كانفاس الهالة التفاعلية المتلاشية -->
+    <canvas id="interactiveCanvas"></canvas>
+
+    <!-- كانفاس خلفية الماتريكس الصامتة -->
+    <canvas id="bgCanvas"></canvas>
+
+    <div id="toast" class="toast">تم النسخ التلقائي! ✓</div>
+
+    <div class="container">
+        <!-- بنر هوية المطور المضيء -->
+        <div class="dev-banner">System Operator: Marhoul</div>
+
+        <!-- أدوات التحكم العلوية -->
+        <div class="top-controls">
+            <button class="control-btn" id="soundToggleBtn" onclick="toggleSound()">
+                🔊 تأثيرات مسموعة
+            </button>
+            <button class="control-btn" onclick="nextTheme()">
+                🎨 تغيير المظهر
+            </button>
+        </div>
+
+        <h2>مستخرج مفاتيح ألياف اتصالات الجزائر</h2>
+
+        <!-- لوحة مسح شبكات الواي فاي الذكية -->
+        <div class="wifi-scanner-box">
+            <div class="scanner-header">
+                <span>الشبكات النشطة المكتشفة:</span>
+                <div class="scan-status">
+                    <div class="scan-dot"></div>
+                    <span id="scanText">جاري البحث...</span>
+                </div>
+            </div>
+            <div class="wifi-list" id="wifiList">
+                <!-- سيتم ملء الشبكات برمجياً -->
+            </div>
+        </div>
+        
+        <input type="text" id="inputCode" placeholder="fh_xxxxxx" value="fh_">
+        <button class="btn btn-decode" onclick="processDecoding()">بدء عملية الفك والاختراق</button>
+        
+        <!-- شاشة الهكر للأنيميشن الصاعد -->
+        <div id="hackingContainer" class="hacking-container">
+            <canvas id="hackingCanvas"></canvas>
+        </div>
+
+        <!-- تِرمينال كتابة الأوامر -->
+        <div id="terminalBox" class="terminal-box"></div>
+
+        <div class="result-box">
+            <div class="result-title">مفتاح الشبكة المستخرج:</div>
+            <span id="result" onclick="copyResult()">بانتظار الإدخال...</span>
+            
+            <!-- لوحة إحصائيات سرعة الفك -->
+            <div id="statsPanel" class="stats-panel">
+                <div class="stat-item">
+                    <span>الوقت المستغرق</span>
+                    <span id="timeStat" class="stat-val">0.00s</span>
+                </div>
+                <div class="stat-item">
+                    <span>مفاتيح تم فحصها</span>
+                    <span id="keysStat" class="stat-val">0 / 999</span>
+                </div>
+            </div>
+
+            <!-- مؤشر قوة كلمة المرور -->
+            <div id="strengthContainer" class="strength-container">
+                <div class="strength-label" id="strengthLabel">القوة: ضعيفة</div>
+                <div class="strength-bar-bg">
+                    <div id="strengthBar" class="strength-bar-fill"></div>
+                </div>
+            </div>
+
+            <!-- كود QR للاتصال -->
+            <div id="qrContainer" class="qr-container">
+                <canvas id="qrCanvas"></canvas>
+            </div>
+            
+            <div class="action-buttons" id="actionArea" style="display: none;">
+                <button id="copyBtn" class="action-btn action-btn-primary" onclick="copyResult()">نسخ كلمة السر</button>
+                <button id="shareBtn" class="action-btn" onclick="shareResult()">مشاركة</button>
+            </div>
+        </div>
+
+        <!-- سجل العمليات السابقة -->
+        <div class="history-section">
+            <div class="history-title">
+                <span>العمليات الأخيرة المكتملة:</span>
+                <span style="cursor:pointer; color: #ff3b30;" onclick="clearHistory()">حذف الكل</span>
+            </div>
+            <ul id="historyList" class="history-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*()_+-=[]{}|;':,./<>?";
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('soundToggleBtn');
+            btn.innerText = soundEnabled ? "🔊 تأثيرات مسموعة" : "🔇 تم كتم الصوت";
+            if(soundEnabled) initAudio();
+        }
+
+        function playClickSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120 + Math.random() * 250, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch(e) {}
+        }
+
+        function playSuccessSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                let now = audioCtx.currentTime;
+                let osc1 = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(523.25, now); 
+                osc1.frequency.setValueAtTime(659.25, now + 0.08); 
+                osc1.frequency.setValueAtTime(783.99, now + 0.16); 
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc1.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc1.start();
+                osc1.stop(now + 0.35);
+            } catch(e) {}
+        }
+
+        // تبديل الثيمات
+        const themes = ["dark", "matrix", "cyberpunk"];
+        let currentThemeIndex = 0;
+
+        function nextTheme() {
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            const chosenTheme = themes[currentThemeIndex];
+            if (chosenTheme === "dark") {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', chosenTheme);
+            }
+        }
+
+        // تأثير الهالة التفاعلية
+        const interCanvas = document.getElementById('interactiveCanvas');
+        const interCtx = interCanvas.getContext('2d');
+        let points = [];
+
+        function resizeInterCanvas() {
+            interCanvas.width = window.innerWidth;
+            interCanvas.height = window.innerHeight;
+        }
+        resizeInterCanvas();
+        window.addEventListener('resize', resizeInterCanvas);
+
+        function getThemeAccentColor() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            if (theme === 'matrix') return '0, 255, 70';
+            if (theme === 'cyberpunk') return '255, 0, 128';
+            return '255, 255, 255';
+        }
+
+        function addAuraPoint(x, y) {
+            points.push({ x, y, alpha: 1.0, size: 10 });
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            addAuraPoint(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if(e.touches.length > 0) {
+                addAuraPoint(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        });
+
+        function drawAura() {
+            interCtx.clearRect(0, 0, interCanvas.width, interCanvas.height);
+            const color = getThemeAccentColor();
+
+            for (let i = 0; i < points.length; i++) {
+                let p = points[i];
+                interCtx.beginPath();
+                let gradient = interCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2);
+                gradient.addColorStop(0, `rgba(${color}, ${p.alpha * 0.3})`);
+                gradient.addColorStop(1, `rgba(${color}, 0)`);
+                interCtx.fillStyle = gradient;
+                interCtx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+                interCtx.fill();
+
+                p.alpha -= 0.04;
+                p.size += 1.5;
+            }
+            points = points.filter(p => p.alpha > 0);
+            requestAnimationFrame(drawAura);
+        }
+        drawAura();
+
+        // خلفية تساقط رموز الماتريكس الصامتة
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        
+        function resizeBgCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        resizeBgCanvas();
+        window.addEventListener('resize', resizeBgCanvas);
+
+        const bgFontSize = 14;
+        const bgColumns = bgCanvas.width / bgFontSize;
+        const bgRainDrops = Array(Math.floor(bgColumns)).fill(1);
+
+        function drawBgMatrix() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'matrix') {
+                bgCtx.fillStyle = 'rgba(2, 11, 2, 0.05)';
+                bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+                bgCtx.fillStyle = 'rgba(0, 255, 70, 0.12)';
+            } else if (currentTheme === 'cyberpunk') {
+                bgCtx.fillStyle = 'rgba(15, 5, 29, 0.05)';
+                bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+                bgCtx.fillStyle = 'rgba(0, 255, 255, 0.12)';
+            } else {
+                bgCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+                bgCtx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+            }
+            
+            bgCtx.font = bgFontSize + 'px monospace';
+            for(let i = 0; i < bgRainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                bgCtx.fillText(text, i * bgFontSize, bgRainDrops[i] * bgFontSize);
+                if(bgRainDrops[i] * bgFontSize > bgCanvas.height && Math.random() > 0.975) {
+                    bgRainDrops[i] = 0;
+                }
+                bgRainDrops[i]++;
+            }
+        }
+        setInterval(drawBgMatrix, 33);
+
+        // شاشة الهكر للأنيميشن الصاعد
+        const hackingCanvas = document.getElementById('hackingCanvas');
+        const hCtx = hackingCanvas.getContext('2d');
+        let hInterval;
+
+        function startHackingAnimation() {
+            hackingCanvas.width = hackingCanvas.parentElement.offsetWidth;
+            hackingCanvas.height = hackingCanvas.parentElement.offsetHeight;
+            const fontSize = 12;
+            const columns = hackingCanvas.width / fontSize;
+            const yPositions = Array(Math.floor(columns)).fill(hackingCanvas.height / fontSize);
+
+            clearInterval(hInterval);
+            hInterval = setInterval(() => {
+                hCtx.fillStyle = 'rgba(0, 0, 0, 0.18)'; 
+                hCtx.fillRect(0, 0, hackingCanvas.width, hackingCanvas.height);
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+
+                for(let i = 0; i < yPositions.length; i++) {
+                    const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                    if (currentTheme === 'matrix') {
+                        hCtx.fillStyle = `rgb(0, ${Math.floor(Math.random() * 155) + 100}, 0)`;
+                    } else if (currentTheme === 'cyberpunk') {
+                        hCtx.fillStyle = Math.random() > 0.5 ? '#00ffff' : '#ff0080';
+                    } else {
+                        const gray = Math.floor(Math.random() * 155) + 100;
+                        hCtx.fillStyle = `rgb(${gray}, ${gray}, ${gray})`;
+                    }
+                    hCtx.font = fontSize + 'px monospace';
+                    hCtx.fillText(text, i * fontSize, yPositions[i] * fontSize);
+                    if(yPositions[i] * fontSize < 0 && Math.random() > 0.95) {
+                        yPositions[i] = hackingCanvas.height / fontSize;
+                    }
+                    yPositions[i]--;
+                    if (Math.random() > 0.98) playClickSound();
+                }
+            }, 30);
+        }
+
+        function stopHackingAnimation() {
+            clearInterval(hInterval);
+        }
+
+        // لوحة الأوامر في التيرمينال
+        const terminalBox = document.getElementById('terminalBox');
+        function addTerminalLine(text, delay) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const line = document.createElement('div');
+                    line.className = 'terminal-line';
+                    line.innerText = `> ${text}`;
+                    terminalBox.appendChild(line);
+                    terminalBox.scrollTop = terminalBox.scrollHeight;
+                    playClickSound();
+                    resolve();
+                }, delay);
+            });
+        }
+
+        async function startTerminalProcess(targetSSID) {
+            terminalBox.innerHTML = '';
+            terminalBox.style.display = 'block';
+            await addTerminalLine(`Initializing master decrypter...`, 100);
+            await addTerminalLine(`Target SSID: "${targetSSID}"`, 150);
+            await addTerminalLine(`Cracking hex pattern table...`, 150);
+            await addTerminalLine(`Decrypting FTTH key...`, 200);
+        }
+
+        // توليد محاكاة لشبكات الواي فاي المحيطة المتاحة
+        function generateFakeWiFiList() {
+            const wifiListElement = document.getElementById('wifiList');
+            const scanText = document.getElementById('scanText');
+            
+            wifiListElement.innerHTML = '';
+            scanText.innerText = "جاري مسح الشبكات...";
+
+            const fiberHexes = ["a4e3f8", "5b2c9d", "d8a17c", "1e92b3", "7f3d5a"];
+            const signals = ["📶 قوي", "📶 متوسط", "📶 قوي", "📶 ضعيف", "📶 قوي"];
+            
+            setTimeout(() => {
+                fiberHexes.forEach((hex, index) => {
+                    const ssid = `fh_${hex}`;
+                    const item = document.createElement('div');
+                    item.className = 'wifi-item';
+                    item.onclick = () => {
+                        playClickSound();
+                        document.getElementById('inputCode').value = ssid;
+                        processDecoding();
+                    };
+
+                    item.innerHTML = `
+                        <div class="wifi-info">
+                            <span class="wifi-name">${ssid}</span>
+                            <span class="wifi-signal">${signals[index]}</span>
+                        </div>
+                        <span class="wifi-badge">اضغط للاستخراج</span>
+                    `;
+                    wifiListElement.appendChild(item);
+                });
+                scanText.innerText = "نشط 🟢";
+            }, 1200); // محاكاة تأخير البحث لثانية واحدة عند التشغيل
+        }
+
+        function processDecoding() {
+            const resultElement = document.getElementById('result');
+            const actionArea = document.getElementById('actionArea');
+            const hackingContainer = document.getElementById('hackingContainer');
+            const qrContainer = document.getElementById('qrContainer');
+            const strengthContainer = document.getElementById('strengthContainer');
+            const statsPanel = document.getElementById('statsPanel');
+            let rawInput = document.getElementById('inputCode').value.trim().toLowerCase();
+
+            if (rawInput === "" || rawInput === "fh_") {
+                resultElement.innerText = "أدخل اسم شبكة صحيح يبدأ بـ fh_";
+                resultElement.style.color = "#ef4444";
+                actionArea.style.display = "none";
+                hackingContainer.style.display = "none";
+                terminalBox.style.display = 'none';
+                qrContainer.style.display = 'none';
+                strengthContainer.style.display = 'none';
+                statsPanel.style.display = 'none';
+                return;
+            }
+
+            actionArea.style.display = "none";
+            qrContainer.style.display = "none";
+            strengthContainer.style.display = 'none';
+            statsPanel.style.display = 'none';
+            resultElement.innerText = "جاري فحص المفاتيح وتخطي بروتوكولات الأمان...";
+            resultElement.style.color = "var(--text-secondary)";
+            
+            hackingContainer.style.display = "block";
+            startHackingAnimation();
+
+            setTimeout(async () => {
+                await startTerminalProcess(rawInput);
+                setTimeout(() => {
+                    stopHackingAnimation();
+                    hackingContainer.style.display = "none";
+                    terminalBox.style.display = 'none';
+                    decode(rawInput);
+                }, 900);
+            }, 200);
+        }
+
+        // تأثير فك النص التدريجي
+        function animateTextReveal(targetText, element, onComplete) {
+            let iterations = 0;
+            const interval = setInterval(() => {
+                element.innerText = targetText
+                    .split("")
+                    .map((char, index) => {
+                        if(index < iterations) return targetText[index];
+                        return alphabet[Math.floor(Math.random() * alphabet.length)];
+                    })
+                    .join("");
+                
+                if(iterations >= targetText.length) {
+                    clearInterval(interval);
+                    if (onComplete) onComplete();
+                }
+                iterations += 1/3;
+                if(Math.random() > 0.3) playClickSound();
+            }, 30);
+        }
+
+        // تشغيل لوحة الإحصائيات
+        function runStatsPanel() {
+            const statsPanel = document.getElementById('statsPanel');
+            const timeStat = document.getElementById('timeStat');
+            const keysStat = document.getElementById('keysStat');
+            
+            statsPanel.style.display = 'grid';
+            
+            let startTime = performance.now();
+            let keysTested = 0;
+            
+            let counterInterval = setInterval(() => {
+                keysTested += Math.floor(Math.random() * 45) + 15;
+                if (keysTested >= 999) {
+                    keysTested = 999;
+                    clearInterval(counterInterval);
+                }
+                keysStat.innerText = `${keysTested} / 999`;
+                
+                let duration = ((performance.now() - startTime) / 1000).toFixed(2);
+                timeStat.innerText = `${duration}s`;
+            }, 25);
+        }
+
+        function evaluatePasswordStrength(password) {
+            const container = document.getElementById('strengthContainer');
+            const bar = document.getElementById('strengthBar');
+            const label = document.getElementById('strengthLabel');
+            
+            container.style.display = 'block';
+            let score = 0;
+            if (password.length >= 8) score += 25;
+            if (/[0-9]/.test(password)) score += 25;
+            if (/[a-z]/.test(password)) score += 25;
+            if (/[@#$%&*()_+-]/.test(password)) score += 25;
+
+            bar.style.width = score + '%';
+            if (score <= 25) {
+                bar.style.background = '#ef4444';
+                label.innerText = 'حالة كلمة المرور: ضعيفة ⚠️';
+            } else if (score <= 50) {
+                bar.style.background = '#f59e0b';
+                label.innerText = 'حالة كلمة المرور: متوسطة ⚡';
+            } else if (score <= 75) {
+                bar.style.background = '#3b82f6';
+                label.innerText = 'حالة كلمة المرور: قوية! 💪';
+            } else {
+                bar.style.background = '#10b981';
+                label.innerText = 'حالة كلمة المرور: آمنة جداً 🛡️';
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        function decode(rawInput) {
+            const reverseHexTable = {
+                '0': 'f', '1': 'e', '2': 'd', '3': 'c',
+                '4': 'b', '5': 'a', '6': '9', '7': '8',
+                '8': '7', '9': '6', 'a': '5', 'b': '4',
+                'c': '3', 'd': '2', 'e': '1', 'f': '0'
+            };
+            
+            const resultElement = document.getElementById('result');
+            const actionArea = document.getElementById('actionArea');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            let variablePart = rawInput;
+            let output = "";
+
+            if (rawInput.startsWith("fh_")) {
+                output = "wlan";
+                variablePart = rawInput.substring(3);
+            } else {
+                output = "";
+                variablePart = rawInput;
+            }
+            
+            for (let char of variablePart) {
+                if (reverseHexTable[char] !== undefined) {
+                    output += reverseHexTable[char];
+                } else {
+                    output += char;
+                }
+            }
+            
+            resultElement.style.color = "var(--text-primary)";
+            
+            runStatsPanel();
+            
+            animateTextReveal(output, resultElement, () => {
+                evaluatePasswordStrength(output);
+                generateWiFiQR(rawInput, output);
+                saveToHistory(rawInput, output);
+                playSuccessSound();
+                
+                autoCopyText(output);
+                
+                actionArea.style.display = "flex";
+                copyBtn.innerText = "نسخ كلمة السر";
+            });
+        }
+
+        function autoCopyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("تم النسخ التلقائي للمفتاح المستخرج! 📋✓");
+            }).catch(() => {});
+        }
+
+        function generateWiFiQR(ssid, password) {
+            const qrContainer = document.getElementById('qrContainer');
+            const qrCanvas = document.getElementById('qrCanvas');
+            const wifiQRString = `WIFI:S:${ssid};T:WPA;P:${password};;`;
+            
+            try {
+                qrContainer.style.display = 'block';
+                new QRious({
+                    element: qrCanvas,
+                    value: wifiQRString,
+                    size: 150,
+                    background: '#ffffff',
+                    foreground: '#000000',
+                    level: 'H'
+                });
+            } catch (e) {
+                qrContainer.style.display = 'none';
+            }
+        }
+
+        function saveToHistory(ssid, password) {
+            let history = JSON.parse(localStorage.getItem('wifi_history')) || [];
+            history = history.filter(item => item.ssid !== ssid);
+            history.unshift({ ssid, password });
+            if (history.length > 5) history.pop();
+            localStorage.setItem('wifi_history', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const historyList = document.getElementById('historyList');
+            const history = JSON.parse(localStorage.getItem('wifi_history')) || [];
+            historyList.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<li style="color: var(--text-secondary); text-align: center;">لا توجد عمليات سابقة</li>';
+                return;
+            }
+            
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.innerHTML = `
+                    <span>${item.ssid} ⬅ <strong>${item.password}</strong></span>
+                    <span class="history-copy" onclick="copyDirect('${item.password}')">نسخ</span>
+                `;
+                historyList.appendChild(li);
+            });
+        }
+
+        function copyDirect(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("تم النسخ! ✓");
+            });
+        }
+
+        function clearHistory() {
+            if (confirm("هل تريد بالتأكيد حذف كافة السجلات؟")) {
+                localStorage.removeItem('wifi_history');
+                loadHistory();
+            }
+        }
+
+        function copyResult() {
+            const resultText = document.getElementById('result').innerText;
+            const copyBtn = document.getElementById('copyBtn');
+            if (resultText && resultText !== "بانتظار الإدخال..." && resultText !== "جاري فحص المفاتيح...") {
+                navigator.clipboard.writeText(resultText).then(() => {
+                    showToast("تم النسخ بنجاح! 📋");
+                    copyBtn.innerText = "تم النسخ! ✓";
+                    setTimeout(() => { copyBtn.innerText = "نسخ كلمة السر"; }, 2000);
+                });
+            }
+        }
+
+        function shareResult() {
+            const resultText = document.getElementById('result').innerText;
+            const rawInput = document.getElementById('inputCode').value.trim();
+            if (navigator.share) {
+                navigator.share({
+                    title: 'مستخرج الواي فاي',
+                    text: `الشبكة: ${rawInput}\nكلمة السر: ${resultText}\nبواسطة المطور Marhoul`,
+                }).catch(() => {});
+            } else {
+                alert(`الشبكة: ${rawInput}\nكلمة السر: ${resultText}`);
+            }
+        }
+
+        // دعم PWA للعمل أوفلاين
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `
+                    const CACHE_NAME = 'wifi-cache-v3';
+                    const urls = ['./', 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js'];
+                    self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urls))));
+                    self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(blob)).then(() => {
+                    console.log('PWA Ready!');
+                }).catch(() => {});
+            });
+        }
+
+        window.onload = function() {
+            loadHistory();
+            generateFakeWiFiList(); // تشغيل المسح فور فتح الصفحة
+        }
+    </script>
+</body>
+</html>
